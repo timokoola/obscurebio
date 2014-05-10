@@ -47,12 +47,13 @@ def handle_command_line():
 def obscure_score(text, search_word):
     if len(text) == 0:
         return 0
-    scalers = len(filter(lambda x: x.isupper() or x in "@,.#", text))
+    scalers = len(filter(lambda x: x.isupper() or x in ",.#", text))
     no_http_please = 1000 if text.find("http://") != -1 else 1
+    no_at = 1000 if text.find("@") != -1 else 1
     scanthis = text.lower()
     search_in = 50 if search_word.lower() in scanthis else 1
     result = (search_in * sum(map(lambda x: LETTER_SCORE.get(x, 10), scanthis)) ) / \
-        (max(1, scalers * no_http_please))
+        (max(1, scalers * no_http_please * no_at))
     return result
 
 
