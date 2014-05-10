@@ -102,7 +102,7 @@ if __name__ == "__main__":
     args = handle_command_line()
     api = (TwythonHelper(args.keyfile)).api
     if args.testkey:
-        testapi = (TwythonHelper(args.keyfile)).api
+        testapi = (TwythonHelper(args.testkey)).api
     else:
         testapi = None
     (search_item, sitems) = get_new_word(args.wordfile,
