@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from twython import Twython
 import sys
 import os
