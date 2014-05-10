@@ -38,6 +38,8 @@ def handle_command_line():
     parser.add_argument("-u", "--used_words_file", default="used_words.txt")
     parser.add_argument("-k", "--keyfile",
                         help="Twitter account consumer and accesstokens")
+    parser.add_argument("-t", "--testkey",
+                        help="for debug tweets", default=None)
     args = parser.parse_args()
     return args
 
@@ -98,34 +100,43 @@ def add_to_candidates(best, wf):
 if __name__ == "__main__":
     args = handle_command_line()
     api = (TwythonHelper(args.keyfile)).api
+    if args.testkey:
+        testapi = (TwythonHelper(args.keyfile)).api
+    else:
+        testapi = None
     (search_item, sitems) = get_new_word(args.wordfile,
                                          args.used_words_file, args.word)
 
     tweeted = False
 
+    rounds = 0
+
     while not tweeted:
-        print search_item
+        if rounds > 10:
+            if testapi:
+                testapi.update_status(status=search_item)
+            sys.exit()
         items = api.search_users(q=search_item, page=4)
-        print items, len(items)
         if len(items) == 0:
             search_item, tmp = get_new_word(
                 args.wordfile, args.used_words_file)
-            print search_item
             continue
         l = [i["description"] for i in items]
         lm = map(lambda x: (x, obscure_score(x, search_item)), l)
-        try:
-            best = sorted(lm, key=lambda x: -x[1])[0][0]
-        except IndexError:
-            print l, lm, "Error"
+        best = sorted(lm, key=lambda x: -x[1])[0][0]
 
         try:
             api.update_status(status=best)
             tweeted = True
+
         except:
             search_item, tmp = get_new_word(
                 args.wordfile, args.used_words_file)
             tweeted = False
+        finally:
+            if testapi:
+                testapi.update_status(status=search_item)
 
         add_to_used(search_item, args.used_words_file)
         add_to_candidates(best, args.wordfile)
+        rounds = rounds + 1
